@@ -22,7 +22,7 @@ const eventRouter = () => {
 }
 
 module.exports = {
-  name: 'sools-core',
+  name: 'core',
   construct() {
 
     const { on, trigger } = eventRouter()
