@@ -12,14 +12,16 @@ module.exports = class CoreModule extends Module {
 
   async loadModules() {
     super.loadModules()
-    const rootModule = new Module({
-      isFile: false,
-      name: 'src',
-      parent: this,
-      path: this.options.root,
-    })
-    rootModule.load()
-    this.modules.unshift(rootModule)
+    if (this.options.root) {
+      const rootModule = new Module({
+        isFile: false,
+        name: 'src',
+        parent: this,
+        path: this.options.root,
+      })
+      rootModule.load()
+      this.modules.unshift(rootModule)
+    }
   }
 
   async start() {

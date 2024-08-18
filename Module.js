@@ -118,6 +118,9 @@ class Module {
     const { after } = this.index
     if (after) {
       const module = this.getRoot().getModule(after)
+      if(!module){
+        throw new Error(`Module ${after} not found`)
+      }
       module.afters.push(this)
     }
     for (const module of this.modules) {
