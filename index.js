@@ -26,6 +26,11 @@ module.exports = {
   construct() {
     const { on, trigger } = eventRouter()
 
+    process.on('uncaughtException', (err) => {
+      // Handle the error safely
+      console.log(err)
+    })
+
     return {
       on,
       trigger,

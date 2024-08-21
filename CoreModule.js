@@ -1,11 +1,13 @@
 const Module = require('./Module')
+const index = require('./index')
 
 module.exports = class CoreModule extends Module {
 
   constructor(options) {
     super({
       ...options,
-      index: require('./index'),
+      index,
+      ...index,
     })
   }
 

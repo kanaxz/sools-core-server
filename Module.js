@@ -1,6 +1,6 @@
 class Module {
   constructor(options) {
-    this.name = options.index.name
+    this.name = options.name
     this.options = options
     this.afters = []
   }
@@ -29,8 +29,9 @@ class Module {
 
     this.modules = modules.map((index) => {
       const module = new Module({
-        index,
         parent: this,
+        ...index,
+        index,
       })
 
       module.load()
@@ -42,10 +43,13 @@ class Module {
     this.loadModules()
   }
 
-  async processOptions() {
-    const { dependencies, construct } = this.options
+  async processDependencies() {
     const root = this.getRoot()
-
+    const { dependencies } = this.options
+    if (!dependencies) {
+      this.dependenciesObjects = {}
+      return
+    }
     this.dependenciesModules = dependencies.map((dependency) => {
       const module = root.getModule(dependency)
       if (!module) {
@@ -61,7 +65,15 @@ class Module {
       acc[dependancy.name] = dependancy.object
       return acc
     }, {})
-    this.object = await construct(this.dependenciesObjects, root.options.config)
+  }
+
+  async processOptions() {
+    const { construct } = this.options
+    const root = this.getRoot()
+    await this.processDependencies()
+    if(construct){
+      this.object = await construct(this.dependenciesObjects, root.options.config)
+    }
     console.info(`Module ${this.name} processed`)
   }
 

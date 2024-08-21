@@ -1,6 +1,6 @@
 {
  "name": "sools-core-server",
- "version": "1.5.0",
+ "version": "1.19.0",
  "description": "",
  "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,5 +9,9 @@
  "license": "ISC",
  "dependencies": {
   "moment": "^2.30.1"
+ },
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/kanaxz/sools-core-server"
  }
 }
