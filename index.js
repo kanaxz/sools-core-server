@@ -24,7 +24,6 @@ const eventRouter = () => {
 module.exports = {
   name: 'core',
   construct() {
-
     const { on, trigger } = eventRouter()
 
     return {

@@ -1,10 +1,6 @@
-const fs = require('fs')
-const { join } = require('path')
-const moment = require('moment')
-
 class Module {
   constructor(options) {
-    this.name = options.name
+    this.name = options.index.name
     this.options = options
     this.afters = []
   }
@@ -13,10 +9,10 @@ class Module {
     return this.options.parent?.getRoot() || this
   }
 
-  getModule(moduleName) {
-    if (this.name === moduleName) { return this }
+  getModule(moduleIndex) {
+    if (this.options.index === moduleIndex) { return this }
     for (const module of this.modules) {
-      const child = module.getModule(moduleName)
+      const child = module.getModule(moduleIndex)
       if (child) {
         return child
       }
@@ -24,87 +20,48 @@ class Module {
     return null
   }
 
-  loadIndex() {
-    const { path } = this.options
-    this.index = Object.assign({
-      name: this.name,
-      dependencies: [],
-      construct: () => ({})
-    }, require.main.require(path))
-    this.name = this.index.name
-  }
-
   loadModules() {
-    if (this.options.isFile) {
-      this.modules = []
-      return
-    }
-    const { path } = this.options
-    const modulesPath = join(path, 'modules')
-    const exist = fs.existsSync(modulesPath)
-    if (!exist) {
+    const { modules } = this.options
+    if (!modules) {
       this.modules = []
       return
     }
 
-    const ditents = fs.readdirSync(modulesPath, { withFileTypes: true })
-    this.modules = ditents.map((d) => {
-      const name = d.name.replace('.js', '')
-      const modulePath = join(modulesPath, d.name)
+    this.modules = modules.map((index) => {
       const module = new Module({
-        isFile: d.isFile(),
-        name,
+        index,
         parent: this,
-        path: modulePath,
       })
 
       module.load()
       return module
     })
-  }
-
-  loadBundles() {
-    const bundles = this.options.bundles
-    if (!bundles?.length) { return }
-    const bundlesModules = bundles.map((path) => {
-      const module = new Module({
-        isFile: false,
-        parent: this,
-        path: join(this.options.node_modules, path),
-      })
-
-      module.load()
-      return module
-    })
-    this.modules.push(...bundlesModules)
   }
 
   load() {
-    this.loadIndex()
     this.loadModules()
-    this.loadBundles()
   }
 
-  async processIndex() {
-    const { dependencies, construct } = this.index
+  async processOptions() {
+    const { dependencies, construct } = this.options
     const root = this.getRoot()
 
-    this.dependencies = dependencies.map((dependancyName) => {
-      const module = root.getModule(dependancyName)
+    this.dependenciesModules = dependencies.map((dependency) => {
+      const module = root.getModule(dependency)
       if (!module) {
-        throw new Error(`Module '${dependancyName}' not found from '${this.options.path}'`)
+        throw new Error(`Module '${dependency.name}' not found from '${this.options.name}'`)
       }
       return module
     })
-    for (const dependancy of this.dependencies) {
+    for (const dependancy of this.dependenciesModules) {
       await dependancy.process()
     }
 
-    this.dependenciesObject = this.dependencies.reduce((acc, dependancy) => {
+    this.dependenciesObjects = this.dependenciesModules.reduce((acc, dependancy) => {
       acc[dependancy.name] = dependancy.object
       return acc
     }, {})
-    this.object = await construct(this.dependenciesObject, root.options.config)
+    this.object = await construct(this.dependenciesObjects, root.options.config)
     console.info(`Module ${this.name} processed`)
   }
 
@@ -115,10 +72,10 @@ class Module {
   }
 
   async loadAfter() {
-    const { after } = this.index
+    const { after } = this.options
     if (after) {
       const module = this.getRoot().getModule(after)
-      if(!module){
+      if (!module) {
         throw new Error(`Module ${after} not found`)
       }
       module.afters.push(this)
@@ -130,7 +87,7 @@ class Module {
 
   async process(processChilds = false) {
     if (!this.isProcessed) {
-      await this.processIndex()
+      await this.processOptions()
       this.isProcessed = true
 
       for (const after of this.afters) {

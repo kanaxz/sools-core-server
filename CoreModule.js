@@ -5,23 +5,8 @@ module.exports = class CoreModule extends Module {
   constructor(options) {
     super({
       ...options,
-      name: 'core',
-      path: `${options.node_modules}/sools-core-server/index.js`,
+      index: require('./index'),
     })
-  }
-
-  async loadModules() {
-    super.loadModules()
-    if (this.options.root) {
-      const rootModule = new Module({
-        isFile: false,
-        name: 'src',
-        parent: this,
-        path: this.options.root,
-      })
-      rootModule.load()
-      this.modules.unshift(rootModule)
-    }
   }
 
   async start() {
