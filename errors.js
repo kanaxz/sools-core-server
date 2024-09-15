@@ -7,6 +7,6 @@ const handleError = (res, err) => {
   })
 }
 
-module.exports = {
+export default {
   handleError
 }

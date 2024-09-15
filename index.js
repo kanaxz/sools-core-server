@@ -21,7 +21,7 @@ const eventRouter = () => {
   }
 }
 
-module.exports = {
+export default {
   name: 'core',
   construct() {
     const { on, trigger } = eventRouter()

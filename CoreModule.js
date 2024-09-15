@@ -1,21 +1,22 @@
-const Module = require('./Module')
-const index = require('./index')
+import Module from './Module.js'
+import index from './index.js'
 
-module.exports = class CoreModule extends Module {
+export default (
+  class CoreModule extends Module {
+    constructor(options) {
+      super({
+        ...options,
+        index,
+        ...index,
+      })
+    }
 
-  constructor(options) {
-    super({
-      ...options,
-      index,
-      ...index,
-    })
+    async start() {
+      this.load()
+      this.loadAfter()
+      await this.process(true)
+      this.object.module = this
+      await this.object.trigger('ready')
+    }
   }
-
-  async start() {
-    this.load()
-    this.loadAfter()
-    await this.process(true)
-    this.object.module = this
-    await this.object.trigger('ready')
-  }
-}
+)
